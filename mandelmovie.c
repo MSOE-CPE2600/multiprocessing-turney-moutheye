@@ -14,10 +14,11 @@
 int main(int argc, char *argv[]) 
 {
     int num_procs = 1;
+    int num_threads = 1;
     int opt;
 
     // Parse command line argument: -n <num processes>
-    while ((opt = getopt(argc, argv, "n:")) != -1) 
+    while ((opt = getopt(argc, argv, "n:t:")) != -1) 
     {
         switch (opt) 
         {
@@ -25,8 +26,11 @@ int main(int argc, char *argv[])
             case 'n':
                 num_procs = atoi(optarg);
                 break;
+            case 't':
+                num_threads = atoi(optarg);
+                break;
             default:
-                fprintf(stderr, "Usage: %s -n <num_processes>\n", argv[0]);
+                fprintf(stderr, "Usage: %s -n <num_processes> -t <num_threads>\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
     }
@@ -40,7 +44,7 @@ int main(int argc, char *argv[])
         num_procs = NUM_FRAMES;
     }
 
-    printf("Generating %d frames using %d processes...\n", NUM_FRAMES, num_procs);
+    printf("Generating %d frames using %d processes and %d threads...\n", NUM_FRAMES, num_procs, num_threads);
 
     double xcenter = -0.5;
     double ycenter = 0.0;
@@ -59,11 +63,12 @@ int main(int argc, char *argv[])
                 char outfile[64];
                 snprintf(outfile, sizeof(outfile), "frame%02d.jpg", frame);
 
-                char xstr[32], ystr[32], sstr[32], mstr[16];
+                char xstr[32], ystr[32], sstr[32], mstr[16], tstr[32]; 
                 snprintf(xstr, sizeof(xstr), "%f", xcenter); //x
                 snprintf(ystr, sizeof(ystr), "%f", ycenter); //y
                 snprintf(sstr, sizeof(sstr), "%f", scale); //scale
                 snprintf(mstr, sizeof(mstr), "%d", 1000 + frame * 50); 
+                snprintf(tstr, sizeof(tstr), "%d", num_threads);
 
                 execl("./mandel", "mandel",
                        "-x", xstr,
@@ -71,6 +76,7 @@ int main(int argc, char *argv[])
                        "-s", sstr,
                        "-m", mstr,
                        "-o", outfile,
+                       "-t", tstr,
                        (char *)NULL);
 
                 perror("execl failed");
